@@ -11,8 +11,8 @@
 #define RED 2
 #define BLUE 4
 #define GREEN 8
-#define SW1 0x01
-#define SW2 0x10
+#define SW1 0x10
+#define SW2 0x01
 
 // Red:  20 x 15Hz
 // Blue: 10 x 13Hz
