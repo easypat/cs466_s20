@@ -1,8 +1,17 @@
 #include "assert.h"
 #include <stdint.h>
+#include <stdbool.h>
 #include "inc/tm4c123gh6pm.h"
 #include "FreeRTOS.h"
 #include "task.h"
+
+/* Optional includes for USB serial output */
+#ifdef USB_SERIAL_OUTPUT
+#include "driverlib/rom.h"
+#include "utils/uartstdio.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/uart.h"
+#endif
 
 // Candidate for my assert Module
 void  
@@ -38,6 +47,14 @@ spinDelayMs(uint32_t ms)
 void 
 _assert_failed (const char *assertion, const char *file, unsigned int line)
 {
+    // Lab 3 required assert print statement
+    #ifdef USB_SERIAL_OUTPUT
+        UARTprintf("Assertion Failed: %s at %s::%d\n", assertion, file, line);
+    #endif
+
+    taskENTER_CRITICAL();
+    taskDISABLE_INTERRUPTS();
+
     // Not alot that we can do at the current time so simply blink the 
     // LED rapidly
     //

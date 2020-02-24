@@ -1,0 +1,11 @@
+set line /dev/tty.usbmodem0E208CE61
+set speed 115200
+set carrier-watch off
+set carrier off
+set parity none
+set handshake none
+set stop-bits 1
+set flow xon/xof
+
+c
+q

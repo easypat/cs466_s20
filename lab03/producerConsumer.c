@@ -1,6 +1,7 @@
 /* Standard includes. */
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 
 /* Kernel includes. */
 #include "FreeRTOS.h"
@@ -37,46 +38,11 @@
 
 uint32_t SystemCoreClock;
 
-#ifdef USB_SERIAL_OUTPUT
-
-#ifdef DEBUG
-void
-__error__(char *pcFilename, uint32_t ui32Line)
-{
-	_assert_failed ("__error__", pcFilename, ui32Line);
-}
-#endif
-
-//*****************************************************************************
-//
-//: Configure the UART and its pins.  This must be called before UARTprintf().
-//
-//*****************************************************************************
-static void
-_configureUART(void)
-{
-    //
-    // Enable UART0
-    //
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
-
-    //
-    // Configure GPIO Pins for UART mode.
-    //
-    GPIOPinConfigure(GPIO_PA0_U0RX);
-    GPIOPinConfigure(GPIO_PA1_U0TX);
-    GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-
-    //
-    // Use the internal 16MHz oscillator as the UART clock source.
-    //
-    UARTClockSourceSet(UART0_BASE, UART_CLOCK_PIOSC);
-
-    //
-    // Initialize the UART for console I/O.
-    //
-    UARTStdioConfig(0, 115200, 16000000);
-}
+typedef struct {
+    QueueHandle_t qHandle;
+    int messageID;
+    char message[20];
+} queueStruct_t;
 
 static void
 _setupHardware(void)
@@ -87,17 +53,11 @@ _setupHardware(void)
     //
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
 
-    // Enable SW2 ?
-    //GPIO_PORTF_LOCK_R = GPIO_LOCK_KEY;
-    //GPIO_PORTF_CR_R = 0xFF;
-
     // Enable the GPIO pin for the LED (PF3).  Set the direction as output, and
     // enable the GPIO pin for digital function.
     // These are TiveDriver library functions
     //
     GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, (LED_G|LED_R|LED_B));
-    //GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, SW1 );
-    //GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, SW2 );
 
     //
     // Set weak pull-up for switchs
@@ -124,12 +84,129 @@ _setupHardware(void)
 
 }
 
+#ifdef USB_SERIAL_OUTPUT
 
+#ifdef DEBUG
+void
+__error__(char *pcFilename, uint32_t ui32Line)
+{
+	_assert_failed ("__error__", pcFilename, ui32Line);
+}
 #endif
+
+//*****************************************************************************
+//
+//: Configure the UART and its pins.  This must be called before UARTprintf().
+//
+//*****************************************************************************
+static void
+_configureUART(void)
+{
+    //
+    // Enable UART0
+    //
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
+
+    //
+    // Configure GPIO Pins for UART mode.
+    //
+    GPIOPinConfigure(GPIO_PA0_U0RX);
+    GPIOPinConfigure(GPIO_PA1_U0TX);
+    GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+
+    //
+    // Use the internal 16MHz oscillator as the UART clock source.
+    //
+    UARTClockSourceSet(UART0_BASE, UART_CLOCK_PIOSC);
+
+    //
+    // Initialize the UART for console I/O.
+    //
+    UARTStdioConfig(0, 115200, 16000000);
+}
+#endif
+
+static void
+_consumer( void *conParams )
+{
+    uint32_t blinkRate = 60; // blink every 40ms
+    uint32_t ledOn = 0;
+    BaseType_t queueRes;
+    queueStruct_t conQueueHandle = *((queueStruct_t*)conParams);
+
+    while(true)
+    {
+        queueRes = xQueueReceive(conQueueHandle.qHandle, &(conQueueHandle.messageID), portMAX_DELAY);
+
+        UARTprintf("C-Receive\n");
+    	ledOn = !ledOn;
+        if(conQueueHandle.messageID == 1) LED(LED_B, ledOn);
+        if(conQueueHandle.messageID == 2) LED(LED_R, ledOn);
+        //LED(LED_B, ledOn);
+        vTaskDelay(blinkRate / portTICK_RATE_MS);
+        ledOn = !ledOn;
+        //LED(LED_B, ledOn);
+        LED(LED_B|LED_R, ledOn);
+    }
+}
+
+static void
+_producer( void *prodParams )
+{
+    BaseType_t queueRes; // Response for full/not-full queue
+    queueStruct_t prodQueueHandle = *((queueStruct_t*)prodParams);
+    prodQueueHandle.messageID = 1;
+    int r = 1191;
+
+    IntPrioritySet(INT_GPIOF, 255);  // Required with FreeRTOS 10.1.1
+
+    while(true)
+    {
+        // Create random number for delay
+        r = (95+(((r<<3)+93)*53)%11);
+
+        queueRes = xQueueSend(prodQueueHandle.qHandle, (void*)&prodQueueHandle.messageID, (TickType_t) 0);
+
+        if(queueRes == pdPASS) {
+            UARTprintf("C-Produce prod1\n");
+            vTaskDelay(r / portTICK_RATE_MS);
+        } else {
+            assert(0);
+        }
+    }
+}
+
+static void
+_producerToo( void *prodParams )
+{
+    BaseType_t queueRes; // Response for full/not-full queue
+    queueStruct_t prodQueueHandle = *((queueStruct_t*)prodParams);
+    prodQueueHandle.messageID = 2;
+    int r = 1023;
+
+    IntPrioritySet(INT_GPIOF, 255);  // Required with FreeRTOS 10.1.1
+
+    while(true)
+    {
+        // Create random number for delay
+        r = (95+(((r<<3)+101)*79)%10);
+
+        queueRes = xQueueSend(prodQueueHandle.qHandle, (void*)&prodQueueHandle.messageID, (TickType_t) 0);
+
+        if(queueRes == pdPASS) {
+            UARTprintf("C-Produce prod2\n");
+            vTaskDelay(r / portTICK_RATE_MS);
+        } else {
+            assert(0);
+        }
+    }
+}
+
 static void
 _heartbeat( void *notUsed )
 {
-    uint32_t green500ms = 500; // 1 second
+    uint32_t greenRate = 500; // 1 second
     uint32_t ledOn = 0;
 
     IntPrioritySet(INT_GPIOF, 255);  // Required with FreeRTOS 10.1.1, 
@@ -138,18 +215,26 @@ _heartbeat( void *notUsed )
     {
         ledOn = !ledOn;
         LED(LED_G, ledOn);
-        vTaskDelay(green500ms / portTICK_RATE_MS);
+	    UARTprintf("---- 500ms Heartbeat ----\n");
+        vTaskDelay(greenRate / portTICK_RATE_MS);
     }
 }
 
 int main( void )
 {
+    //QueueHandle_t queue1;
     _setupHardware();
 #ifdef USB_SERIAL_OUTPUT
     void spinDelayMs(uint32_t ms);
     _configureUART();
     spinDelayMs(1000);  // Allow UART to setup
 #endif
+
+    /* Create queue structure. */
+    queueStruct_t qStuff;
+    //queue1 = xQueueCreate(20, sizeof(uint32_t));
+    qStuff.qHandle = xQueueCreate(20, sizeof(uint32_t));
+    //queue1 = xQueueCreate(20, sizeof(uint32_t));
 
     xTaskCreate(_heartbeat,
                 "green",
@@ -158,8 +243,28 @@ int main( void )
                 tskIDLE_PRIORITY,  // higher numbers are higher priority..
                 NULL );
 
-    /* Create queue structure. */
-    
+    /* Start producer and consumer with the queue handle. */
+    xTaskCreate(_producer,
+		"producer",
+		configMINIMAL_STACK_SIZE,
+		(void *)&qStuff,//(void *)&queue1,
+		tskIDLE_PRIORITY + 1,
+		NULL );
+
+    xTaskCreate(_producerToo,
+		"producer2",
+		configMINIMAL_STACK_SIZE,
+		(void *)&qStuff,//(void *)&queue1,
+		tskIDLE_PRIORITY + 1,
+		NULL );
+
+    xTaskCreate(_consumer,
+		"consumer",
+		configMINIMAL_STACK_SIZE,
+		(void *)&qStuff,//(void *)&queue1,
+		tskIDLE_PRIORITY,
+		NULL );
+
     /* Start the tasks and timer running. */
     vTaskStartScheduler();
 

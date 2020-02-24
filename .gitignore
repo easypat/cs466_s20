@@ -6,3 +6,4 @@ TivaDriver
 *.map
 *.axf
 *.lst
+.DS_Store

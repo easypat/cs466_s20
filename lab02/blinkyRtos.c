@@ -28,6 +28,8 @@
 #define LED(led,on) ((on)?LED_ON(led):LED_OFF(led))
 
 static SemaphoreHandle_t _semBtn = NULL;
+static SemaphoreHandle_t _redBtn = NULL;
+static SemaphoreHandle_t _blueBtn = NULL;
 
 uint32_t SystemCoreClock;
 
@@ -44,7 +46,12 @@ _interruptHandlerPortF(void)
 
     if (mask & SW1)
     {
-        xSemaphoreGiveFromISR(_semBtn, &xHigherPriorityTaskWoken);
+        xSemaphoreGiveFromISR(_redBtn, &xHigherPriorityTaskWoken);
+    }
+
+    if (mask & SW2)
+    {
+        xSemaphoreGiveFromISR(_blueBtn, &xHigherPriorityTaskWoken);
     }
 
     if (xHigherPriorityTaskWoken)
@@ -66,18 +73,23 @@ _setupHardware(void)
     //
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
 
+    // Unlock SW2
+    GPIO_PORTF_LOCK_R = 0x4C4F434B;
+    GPIO_PORTF_CR_R = 0xFF;
+
     // Enable the GPIO pin for the LED (PF3).  Set the direction as output, and
     // enable the GPIO pin for digital function.
     // These are TiveDriver library functions
     //
     GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, (LED_G|LED_R|LED_B));
     GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, SW1 );
+    GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, SW2 );
 
     //
     // Set weak pull-up for switchs
     // This is a TiveDriver library function
     //
-    GPIOPadConfigSet(GPIO_PORTF_BASE, SW1, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+    GPIOPadConfigSet(GPIO_PORTF_BASE, (SW1|SW2), GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
 
 
     //

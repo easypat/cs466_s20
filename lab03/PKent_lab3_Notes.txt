@@ -1,0 +1,35 @@
+Patrick Kent
+13 Feb 2020
+CS466
+Lab 3 Notes
+
+Lab Report Questions
+1,2(sic): How much effort did it take to get the basic heartbeat-only task working?
+	It took minimal effort to get the heartbeat task working. If I didn't know what the scheduler was like, I'd probably have to spend some time learning how xTaskCreate and vTaskStartScheduler work.
+3: What does casting something as (void *) do?
+	It allows you to pass by reference an object, whereby it can be cast/converted as the appropriate type within the function.
+4: After setting up both producer functions to create messages at roughly 10Hz,
+	bumping the consumer task down to idle priority, and upping the delay time to at least 60, one of the producer functions asserts. This happens because the consumer is pulling messages from the queue slower than the producers can fill it, causing a queue full error.
+5:	a. The other threads have stopped, including the heartbeat.
+	b. The other threads stopped because of the function in assert labelled
+	"taskENTER_CRITICAL()," which while declaring that a critical code section
+	has been entered also prevents any preemptive context switching, i.e. to other threads.
+6:
+
+
+METHOD
+1. cp *.h *.c Makefile makedefs ../lab03
+2. Rename blinkyRTOS.c -> producerConsumer.c
+3. Remove red/blue heartbeat functions, interrupt setup functions, and red/blue tasks from old file
+4. Copy _configureUART setup function and includes from serialStubs.c -> producerConsumer.c
+5. Inserted UART print statement inside infiniwhile loop
+	a. Remembered to enable GPIOA in the hardware setup.
+6. Created a consumer task to take a message from the queue every 10ms.
+7. Created a producer task to place a message in the queue at random intervals.
+	a. Random intervals are determined by the RandomSeed() function from TivaDriver/utils/random.c using a uint32_t.
+8. Removed random.c reference as the only function available was a seed function.
+9. Reimplemented a pseudo-random function:
+	int r = (((r<<1)+7)*53)
+
+	a. Each producer function delays xQueueSend tasks from 95-105ms.
+10. 
