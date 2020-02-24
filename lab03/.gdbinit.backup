@@ -1,0 +1,15 @@
+# re is a quick function ro reload 
+define reload
+    monitor reset halt
+    load
+    monitor reset init
+end
+
+define re
+    make
+    reload
+end
+
+re
+b main
+b _assert_failed

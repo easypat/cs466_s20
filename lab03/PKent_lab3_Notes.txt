@@ -32,4 +32,14 @@ METHOD
 	int r = (((r<<1)+7)*53)
 
 	a. Each producer function delays xQueueSend tasks from 95-105ms.
-10. 
+10. Changed the delay to 60ms to force the queue to fill up, forcing a producer function to assert.
+11. Edited k_ACM0 to reflect the file in the slides.
+12. Reviewed Build and Debug Basics pdf.
+13. Added 'set auto-load safe-path /' to existing .gdbinit file in $HOME
+14. Edited existing .gdbinit file to match exact init file in Build and Debug pdf.
+	a. Realized that changing this file to the one from slides breaks gdb; reverted to default.
+14. Started the OpenOCD server with the following command:
+	a. openocd --file board/ek-tm4c123gxl.cfg -c init -c halt
+15. Started gdb with the following command:
+	a. arm-none-eabi-gdb gcc/producerConsumer.axf
+16. 
