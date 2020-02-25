@@ -1,0 +1,18 @@
+Patrick Kent
+20 February 2020
+CS466
+Lab 4 Notes
+
+Lab Report Questions
+Q0: Is the pseudo code for a Serial Peripheral Interface Bus from the wiki page different than Miller's?
+    A: ..
+Q1: Why is this unlike most SPI devices?
+    A: ..
+Q2: What does it mean for our EE board layout friends?
+    A: ..
+
+
+METHOD
+1. 
+
+RESULTS
