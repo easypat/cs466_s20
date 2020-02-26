@@ -130,11 +130,11 @@ uint8_t transfer(uint8_t out) {
 
     for(count = 0; count < 8; count++) {
         in <<= 1;
-        setMOSI(out & 0x80);
-        setSCK(HIGH);
-        in += getMISO();
-        setSCK(LOW);
-        out <<= 1;
+        setMOSI(out & 0x80);    // Set output bit
+        setSCK(HIGH);           // Clock rising edge (SCK = SCLK)
+        in += getMISO();        // Read the data bit
+        setSCK(LOW);            // Clock rising(sic) edge
+        out <<= 1;              // Shift the read bit
     }
     setMOSI(0);
 

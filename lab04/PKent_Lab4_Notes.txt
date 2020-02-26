@@ -5,7 +5,8 @@ Lab 4 Notes
 
 Lab Report Questions
 Q0: Is the pseudo code for a Serial Peripheral Interface Bus from the wiki page different than Miller's?
-    A: ..
+    A: Miller's shifts MISO/MOSI bytes to the left, wiki shifts to the right. The wiki pseudocode also
+    delays on both ends to wait for peer devices.
 Q1: Why is this unlike most SPI devices?
     A: ..
 Q2: What does it mean for our EE board layout friends?

@@ -130,7 +130,7 @@ _configureUART(void)
 static void
 _consumer( void *conParams )
 {
-    uint32_t blinkRate = 60; // blink every 40ms
+    uint32_t blinkRate = 59; // blink every 40ms
     uint32_t ledOn = 0;
     BaseType_t queueRes;
     queueStruct_t conQueueHandle = *((queueStruct_t*)conParams);

@@ -42,4 +42,52 @@ METHOD
 	a. openocd --file board/ek-tm4c123gxl.cfg -c init -c halt
 15. Started gdb with the following command:
 	a. arm-none-eabi-gdb gcc/producerConsumer.axf
-16. 
+16. Using the command 'x/16g 0' the first 16 32-bit words are the following:
+	0x0 		<g_pfnVectors>:	0x00002a3520007514	0x00002acf00002ac9
+	0x10 	 <g_pfnVectors+16>:	0x00002ad500002ad5	0x0000000000002ad5
+	0x20 	 <g_pfnVectors+32>:	0x0000000000000000	0x00000df100000000
+	0x30 	 <g_pfnVectors+48>:	0x0000000000002ad5	0x000010a900001041
+	0x40 	 <g_pfnVectors+64>:	0x00002ad500002ad5	0x00002ad500002ad5
+	0x50 	 <g_pfnVectors+80>:	0x00002ad500002ad5	0x00002ad500002ad5
+	0x60 	 <g_pfnVectors+96>:	0x00002ad500002ad5	0x00002ad500002ad5
+	0x70 	<g_pfnVectors+112>:	0x00002ad500002ad5	0x00002ad500002ad5
+17. Using 'i r' for 'info registers' gives the processor registers:
+	r0             0x22                34
+	r1             0x62762804          1651910660
+	r2             0x13                19
+	r3             0x14                20
+	r4             0x20000504          536872196
+	r5             0x20007600          536901120
+	r6             0xa5a5a5a5          -1515870811
+	r7             0x200004b0          536872112
+	r8             0xa5a5a5a5          -1515870811
+	r9             0xa5a5a5a5          -1515870811
+	r10            0xa5a5a5a5          -1515870811
+	r11            0xa5a5a5a5          -1515870811
+	r12            0x200000a8          536871080
+	sp             0x200004b0          0x200004b0 <ucHeap+1188>
+	lr             0x29ad              10669
+	pc             0x2a34              0x2a34 <ResetISR>
+	xPSR           0x21000000          553648128
+	fpscr          0x0                 0
+	msp            0x20007514          0x20007514 <pui32MainStack>
+	psp            0x0                 0x0 <g_pfnVectors>
+	primask        0x0                 0
+	basepri        0x0                 0
+	faultmask      0x0                 0
+	control        0x0                 0
+18. Using 'i b' for 'info breakpoints' gives the list of set breakpoints:
+	Num     Type           Disp Enb Address    What
+	1       breakpoint     keep y   0x000027c2 in main at producerConsumer.c:226
+19. Decremented consumer delay by 1ms to test 'make' command in gdb.
+20. Running 'make,' 'reload,' and then 'c' within gdb recompiles producerConsumer.c, loads .text at 0x0 of size 0x2f16 and .data at 0x2f16 of size 0x8. Code starts at 0x2a34.
+21. The following are gdb commands with their results:
+	reload:		Loads .text and .data blocks onto the Tiva board, not unlike the lm4flash.
+	i b:		Abbreviated form of 'info breakpoints.' Lists all set breakpoints.
+	i r:		Abbreviated form of 'info registers.' Lists all registers in the stack frame.
+	l:			Abbreviated form of 'list.' Lists 10 or more lines around the previous listing.
+	mr:			Unknown; this command asks if you mean 'maintenance' or 'mem.'
+	p <var> or 
+	p {var, var, ...}: This prints the current value of the given variables in the current stack frame.
+	s:			Steps through the current program until a different source line is reached.
+	n:			Steps to next source line, without entering subroutines (useful for avoiding long for loops!).
