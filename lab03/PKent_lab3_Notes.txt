@@ -23,14 +23,15 @@ METHOD
 3. Remove red/blue heartbeat functions, interrupt setup functions, and red/blue tasks from old file
 4. Copy _configureUART setup function and includes from serialStubs.c -> producerConsumer.c
 5. Inserted UART print statement inside infiniwhile loop
-	a. Remembered to enable GPIOA in the hardware setup.
+	a. Remembered to enable GPIOA in the hardware setup. (rescinded)
 6. Created a consumer task to take a message from the queue every 10ms.
 7. Created a producer task to place a message in the queue at random intervals.
 	a. Random intervals are determined by the RandomSeed() function from TivaDriver/utils/random.c using a uint32_t.
 8. Removed random.c reference as the only function available was a seed function.
 9. Reimplemented a pseudo-random function:
-	int r = (((r<<1)+7)*53)
-
+		r = (95+(((r<<3)+93)*53)%11)
+					and
+		r = (95+(((r<<3)+101)*79)%10)
 	a. Each producer function delays xQueueSend tasks from 95-105ms.
 10. Changed the delay to 60ms to force the queue to fill up, forcing a producer function to assert.
 11. Edited k_ACM0 to reflect the file in the slides.
@@ -42,7 +43,7 @@ METHOD
 	a. openocd --file board/ek-tm4c123gxl.cfg -c init -c halt
 15. Started gdb with the following command:
 	a. arm-none-eabi-gdb gcc/producerConsumer.axf
-16. Using the command 'x/16g 0' the first 16 32-bit words are the following:
+16. (DATA) Using the command 'x/16g 0' the first 16 32-bit words are the following:
 	0x0 		<g_pfnVectors>:	0x00002a3520007514	0x00002acf00002ac9
 	0x10 	 <g_pfnVectors+16>:	0x00002ad500002ad5	0x0000000000002ad5
 	0x20 	 <g_pfnVectors+32>:	0x0000000000000000	0x00000df100000000
@@ -51,7 +52,7 @@ METHOD
 	0x50 	 <g_pfnVectors+80>:	0x00002ad500002ad5	0x00002ad500002ad5
 	0x60 	 <g_pfnVectors+96>:	0x00002ad500002ad5	0x00002ad500002ad5
 	0x70 	<g_pfnVectors+112>:	0x00002ad500002ad5	0x00002ad500002ad5
-17. Using 'i r' for 'info registers' gives the processor registers:
+17. (DATA) Using 'i r' for 'info registers' gives the processor registers:
 	r0             0x22                34
 	r1             0x62762804          1651910660
 	r2             0x13                19
@@ -76,7 +77,7 @@ METHOD
 	basepri        0x0                 0
 	faultmask      0x0                 0
 	control        0x0                 0
-18. Using 'i b' for 'info breakpoints' gives the list of set breakpoints:
+18. (DATA) Using 'i b' for 'info breakpoints' gives the list of set breakpoints:
 	Num     Type           Disp Enb Address    What
 	1       breakpoint     keep y   0x000027c2 in main at producerConsumer.c:226
 19. Decremented consumer delay by 1ms to test 'make' command in gdb.

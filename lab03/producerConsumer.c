@@ -143,10 +143,8 @@ _consumer( void *conParams )
     	ledOn = !ledOn;
         if(conQueueHandle.messageID == 1) LED(LED_B, ledOn);
         if(conQueueHandle.messageID == 2) LED(LED_R, ledOn);
-        //LED(LED_B, ledOn);
         vTaskDelay(blinkRate / portTICK_RATE_MS);
         ledOn = !ledOn;
-        //LED(LED_B, ledOn);
         LED(LED_B|LED_R, ledOn);
     }
 }
@@ -232,9 +230,7 @@ int main( void )
 
     /* Create queue structure. */
     queueStruct_t qStuff;
-    //queue1 = xQueueCreate(20, sizeof(uint32_t));
     qStuff.qHandle = xQueueCreate(20, sizeof(uint32_t));
-    //queue1 = xQueueCreate(20, sizeof(uint32_t));
 
     xTaskCreate(_heartbeat,
                 "green",
@@ -247,21 +243,21 @@ int main( void )
     xTaskCreate(_producer,
 		"producer",
 		configMINIMAL_STACK_SIZE,
-		(void *)&qStuff,//(void *)&queue1,
+		(void *)&qStuff,
 		tskIDLE_PRIORITY + 1,
 		NULL );
 
     xTaskCreate(_producerToo,
 		"producer2",
 		configMINIMAL_STACK_SIZE,
-		(void *)&qStuff,//(void *)&queue1,
+		(void *)&qStuff,
 		tskIDLE_PRIORITY + 1,
 		NULL );
 
     xTaskCreate(_consumer,
 		"consumer",
 		configMINIMAL_STACK_SIZE,
-		(void *)&qStuff,//(void *)&queue1,
+		(void *)&qStuff,
 		tskIDLE_PRIORITY,
 		NULL );
 
