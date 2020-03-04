@@ -1,6 +1,6 @@
 PART=TM4C123GH6PM
 
-TARGET=producerConsumer
+TARGET=spi_master
 
 TIVA=../../TivaDriver
 FREERTOS=../../FreeRTOSv10.2.1_191129/FreeRTOS/Source
@@ -120,7 +120,7 @@ ${COMPILER}/${TARGET}.axf: ${COMPILER}/timers.o
 #
 # Rules for building the application
 #
-${COMPILER}/${TARGET}.axf: ${COMPILER}/producerConsumer.o
+${COMPILER}/${TARGET}.axf: ${COMPILER}/spi_master.o
 ${COMPILER}/${TARGET}.axf: ${COMPILER}/assert.o
 ${COMPILER}/${TARGET}.axf: ${COMPILER}/startup_${COMPILER}.o
 

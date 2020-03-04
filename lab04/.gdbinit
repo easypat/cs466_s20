@@ -10,6 +10,10 @@ define reload
     re
 end
 
+define mr
+    make
+    reload
+end
 
 target extended-remote :3333
 set print elements 350
@@ -18,4 +22,4 @@ set pagination off
 
 re
 b main
-
+_assert_failed

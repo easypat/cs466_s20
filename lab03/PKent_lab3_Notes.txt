@@ -14,7 +14,7 @@ Lab Report Questions
 	b. The other threads stopped because of the function in assert labelled
 	"taskENTER_CRITICAL()," which while declaring that a critical code section
 	has been entered also prevents any preemptive context switching, i.e. to other threads.
-6:
+6: The first 8 bytes of memory contain the ISR vector table.
 
 
 METHOD
@@ -23,10 +23,10 @@ METHOD
 3. Remove red/blue heartbeat functions, interrupt setup functions, and red/blue tasks from old file
 4. Copy _configureUART setup function and includes from serialStubs.c -> producerConsumer.c
 5. Inserted UART print statement inside infiniwhile loop
-	a. Remembered to enable GPIOA in the hardware setup. (rescinded)
+	Xa. Remembered to enable GPIOA in the hardware setup. (rescinded)
 6. Created a consumer task to take a message from the queue every 10ms.
 7. Created a producer task to place a message in the queue at random intervals.
-	a. Random intervals are determined by the RandomSeed() function from TivaDriver/utils/random.c using a uint32_t.
+	Xa. Random intervals are determined by the RandomSeed() function from TivaDriver/utils/random.c using a uint32_t. (rescinded)
 8. Removed random.c reference as the only function available was a seed function.
 9. Reimplemented a pseudo-random function:
 		r = (95+(((r<<3)+93)*53)%11)
@@ -44,14 +44,10 @@ METHOD
 15. Started gdb with the following command:
 	a. arm-none-eabi-gdb gcc/producerConsumer.axf
 16. (DATA) Using the command 'x/16g 0' the first 16 32-bit words are the following:
-	0x0 		<g_pfnVectors>:	0x00002a3520007514	0x00002acf00002ac9
-	0x10 	 <g_pfnVectors+16>:	0x00002ad500002ad5	0x0000000000002ad5
-	0x20 	 <g_pfnVectors+32>:	0x0000000000000000	0x00000df100000000
-	0x30 	 <g_pfnVectors+48>:	0x0000000000002ad5	0x000010a900001041
-	0x40 	 <g_pfnVectors+64>:	0x00002ad500002ad5	0x00002ad500002ad5
-	0x50 	 <g_pfnVectors+80>:	0x00002ad500002ad5	0x00002ad500002ad5
-	0x60 	 <g_pfnVectors+96>:	0x00002ad500002ad5	0x00002ad500002ad5
-	0x70 	<g_pfnVectors+112>:	0x00002ad500002ad5	0x00002ad500002ad5
+	0x0		<g_pfnVectors>:	0x20007514	0x00002a35	0x00002ac9	0x00002acf
+	0x10 <g_pfnVectors+16>:	0x00002ad5	0x00002ad5	0x00002ad5	0x00000000
+	0x20 <g_pfnVectors+32>:	0x00000000	0x00000000	0x00000000	0x00000df1
+	0x30 <g_pfnVectors+48>:	0x00002ad5	0x00000000	0x00001041	0x000010a9
 17. (DATA) Using 'i r' for 'info registers' gives the processor registers:
 	r0             0x22                34
 	r1             0x62762804          1651910660

@@ -3,6 +3,9 @@ Patrick Kent
 CS466
 Lab 4 Notes
 
+OBJECTIVE
+To implement the SPI protocol in software for the Tiva C microprocessor.
+
 Lab Report Questions
 Q0: Is the pseudo code for a Serial Peripheral Interface Bus from the wiki page different than Miller's?
     A: Miller's shifts MISO/MOSI bytes to the left, wiki shifts to the right. The wiki pseudocode also
@@ -12,8 +15,16 @@ Q1: Why is this unlike most SPI devices?
 Q2: What does it mean for our EE board layout friends?
     A: ..
 
+APPARATUS
+
 
 METHOD
 1. 
+
+0100 0001 0x41
+1000 0000 0x80
+0000 1100 
+
+DATA
 
 RESULTS

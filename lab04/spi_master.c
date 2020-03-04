@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
+#include <inttypes.h>
 
 /* Kernel includes. */
 #include "FreeRTOS.h"
@@ -49,12 +50,14 @@ _setupHardware(void)
     // This is a TiveDriver library function
     //
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
 
     // Enable the GPIO pin for the LED (PF3).  Set the direction as output, and
     // enable the GPIO pin for digital function.
     // These are TiveDriver library functions
     //
     GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, (LED_G|LED_R|LED_B));
+    GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, GPIO_PIN_1); // Output pin for Signal Generator
 
     //
     // Set weak pull-up for switchs
@@ -124,36 +127,6 @@ _configureUART(void)
 }
 #endif
 
-/* Manages one byte of data to/from device at the same time. */
-uint8_t transfer(uint8_t out) {
-    uint8_t count, in = 0;
-
-    for(count = 0; count < 8; count++) {
-        in <<= 1;
-        setMOSI(out & 0x80);    // Set output bit
-        setSCK(HIGH);           // Clock rising edge (SCK = SCLK)
-        in += getMISO();        // Read the data bit
-        setSCK(LOW);            // Clock rising(sic) edge
-        out <<= 1;              // Shift the read bit
-    }
-    setMOSI(0);
-
-    return(in);
-}
-
-/* Manipulates CS and multi-byte sequences. */
-static uint8_t expanderReadByte(uint8_t address) {
-    uint8_t value, preRead = 0x41;
-
-    setCS(LOW);
-    transfer(preRead);
-    transfer(address);
-    value = transfer(0);
-    setCS(HIGH);
-
-    return value;
-}
-
 static void
 _heartbeat( void *notUsed )
 {
@@ -171,6 +144,23 @@ _heartbeat( void *notUsed )
     }
 }
 
+static void
+_sigGen( void *notUsed )
+{
+    uint32_t genDelay = 10;
+    int counter = 0;
+
+    IntPrioritySet(INT_GPIOB, 255);  // Required with FreeRTOS 10.1.1, 
+
+    while(true)
+    {
+        UARTprintf("Signal sent %d\n", counter);
+        counter++;
+        GPIO_PORTB_DATA_R ^= GPIO_PIN_1;
+        vTaskDelay(genDelay / portTICK_RATE_MS);
+    }
+}
+
 int main( void )
 {
     //QueueHandle_t queue1;
@@ -181,11 +171,20 @@ int main( void )
     spinDelayMs(1000);  // Allow UART to setup
 #endif
 
+    SysCtlPeripheralEnable(GPIO_PCTL_PB4_SSI2CLK);
+
+    
     xTaskCreate(_heartbeat,
                 "green",
                 configMINIMAL_STACK_SIZE,
                 NULL,
                 tskIDLE_PRIORITY,  // higher numbers are higher priority..
+                NULL );
+    xTaskCreate(_sigGen,
+                "signal",
+                configMINIMAL_STACK_SIZE,
+                NULL,
+                tskIDLE_PRIORITY,
                 NULL );
 
     /* Start the tasks and timer running. */
